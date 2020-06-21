@@ -15,6 +15,11 @@ data class Notes(
     @ColumnInfo(name = "color")
     val color: Int,
     @ColumnInfo(name = "date_time")
-    val date_time: String
+    val date_time: String,
+    @ColumnInfo(name = "date_time_changed")
+    val date_time_changed: String,
+    @ColumnInfo(name = "content")
+    var content: String
+
 )
 

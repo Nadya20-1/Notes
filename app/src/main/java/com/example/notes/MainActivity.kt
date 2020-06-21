@@ -25,6 +25,7 @@ import com.example.notes.ui.base.BaseActivity
 import com.example.notes.ui.viewmodel.NotesViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 
+
 @Suppress("DEPRECATION")
 class MainActivity : BaseActivity() {
 
@@ -133,9 +134,10 @@ class MainActivity : BaseActivity() {
         adapter.setOnItemClickListener(object : NoteMainAdapter.OnItemClickListener {
             override fun onItemClick(note: Notes) {
                 val intent = Intent(baseContext, NewNoteActivity::class.java)
-                intent.putExtra(NewNoteActivity.EXTRA_ID, note.id)
-                intent.putExtra(NewNoteActivity.EXTRA_REPLAY_TITLE, note.title)
-                intent.putExtra(NewNoteActivity.EXTRA_REPLAY_DESCRIPTION, note.description)
+                intent.putExtra(Constant.EXTRA_ID, note.id)
+                intent.putExtra(Constant.EXTRA_REPLAY_TITLE, note.title)
+                intent.putExtra(Constant.EXTRA_REPLAY_DESCRIPTION, note.description)
+                intent.putExtra(Constant.EXTRA_REPLAY_CONTENT, note.content)
                 startActivityForResult(intent, editNoteRequestCode)
                 viewModel.update(note)
             }
@@ -155,37 +157,43 @@ class MainActivity : BaseActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if(requestCode == addNoteRequestCode && resultCode == Activity.RESULT_OK) {
-            val title = data?.getStringExtra(NewNoteActivity.EXTRA_REPLAY_TITLE).toString()
-            val description = data?.getStringExtra(NewNoteActivity.EXTRA_REPLAY_DESCRIPTION).toString()
-            val color = data?.getStringExtra(NewNoteActivity.EXTRA_REPLAY_COLOR).toString().toInt()
+            val title = data?.getStringExtra(Constant.EXTRA_REPLAY_TITLE).toString()
+            val description = data?.getStringExtra(Constant.EXTRA_REPLAY_DESCRIPTION).toString()
+            val content = data?.getStringExtra(Constant.EXTRA_REPLAY_CONTENT).toString()
+            val color = data?.getStringExtra(Constant.EXTRA_REPLAY_COLOR).toString().toInt()
             val note = Notes(
                 0,
                 title,
                 description,
                 color,
-                getDateTime()
+                getDateTime(),
+                getDateTime(),
+                content
             )
             viewModel.insertNote(note)
             Log.d("TAG", "$title - $description")
         } else if (requestCode == editNoteRequestCode && resultCode == Activity.RESULT_OK) {
 
-            val id = data?.getIntExtra(NewNoteActivity.EXTRA_ID, -1)
+            val id = data?.getIntExtra(Constant.EXTRA_ID, -1)
 
             if (id == -1) {
                 Toast.makeText(this, R.string.could_not_update, Toast.LENGTH_SHORT).show()
             }
 
-            val title = data?.getStringExtra(NewNoteActivity.EXTRA_REPLAY_TITLE).toString()
-            val description = data?.getStringExtra(NewNoteActivity.EXTRA_REPLAY_DESCRIPTION).toString()
-            val color = data?.getStringExtra(NewNoteActivity.EXTRA_REPLAY_COLOR).toString().toInt()
+            val title = data?.getStringExtra(Constant.EXTRA_REPLAY_TITLE).toString()
+            val description = data?.getStringExtra(Constant.EXTRA_REPLAY_DESCRIPTION).toString()
+            val content = data?.getStringExtra(Constant.EXTRA_REPLAY_CONTENT).toString()
+            val color = data?.getStringExtra(Constant.EXTRA_REPLAY_COLOR).toString().toInt()
             val note = Notes(
                 0,
                 title,
                 description,
                 color,
-                getDateTime()
+                getDateTime(),
+                getDateTime(),
+                content
             )
-            note.id = data!!.getIntExtra(NewNoteActivity.EXTRA_ID, -1)
+            note.id = data!!.getIntExtra(Constant.EXTRA_ID, -1)
             viewModel.update(note)
 
         } else {

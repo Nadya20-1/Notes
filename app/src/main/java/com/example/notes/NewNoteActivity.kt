@@ -1,44 +1,43 @@
+@file:Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+
 package com.example.notes
 
-import android.Manifest
 import android.app.Activity
-import android.app.LoaderManager
 import android.app.ProgressDialog
-import android.content.CursorLoader
 import android.content.Intent
-import android.content.Loader
-import android.content.pm.PackageManager
-import android.database.Cursor
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.provider.MediaStore
+import android.os.Environment
 import android.text.TextUtils
-import android.view.*
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.WindowManager
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.afollestad.materialdialogs.MaterialDialog
-import com.example.notes.images.DataHelper
-import com.example.notes.images.ImagesAdapter
-import com.example.notes.images.ImagesProvider
+import com.example.notes.images.RichTextEditor
 import com.example.notes.ui.base.BaseActivity
+import com.example.notes.utils.*
+import com.zhihu.matisse.Matisse
 import dev.sasikanth.colorsheet.ColorSheet
 import kotlinx.android.synthetic.main.activity_new_note.*
-import java.io.ByteArrayOutputStream
-import java.io.FileNotFoundException
+import rx.Observable
+import rx.Observer
+import rx.Subscriber
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
+import java.io.*
+import java.util.*
 
-@Suppress("DEPRECATION", "DEPRECATED_IDENTITY_EQUALS")
-class NewNoteActivity : BaseActivity(), LoaderManager.LoaderCallbacks<Cursor>{
 
-    var dbHelper: DataHelper? = null
-    private var imagesAdapter: ImagesAdapter? = null
-    private var progressBar: ProgressDialog? = null
-    private var progressBarStatus = 0
-    private var thumbnail: Bitmap? = null
-    private val progressBarbHandler = Handler()
+@Suppress("DEPRECATION", "DEPRECATED_IDENTITY_EQUALS",
+    "RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
+
     private var selectedColor: Int = ColorSheet.NO_COLOR
+    private val loadingDialog: ProgressDialog? = null
+    private var insertDialog: ProgressDialog? = null
 
     override fun getViewID(): Int = R.layout.activity_new_note
 
@@ -46,70 +45,27 @@ class NewNoteActivity : BaseActivity(), LoaderManager.LoaderCallbacks<Cursor>{
         super.onCreate(savedInstanceState)
 
         setSupportActionBar(toolBar2)
+        iniView()
 
-        image_recycler_view!!.layoutManager = LinearLayoutManager(this)
-
-        imagesAdapter = ImagesAdapter(this)
-        image_recycler_view!!.adapter = imagesAdapter
-
-        loaderManager.initLoader(
-            IMAGES_LOADER,
-            null,
-            this)
-
-        if (intent.hasExtra(EXTRA_ID)) {
+        if (intent.hasExtra(Constant.EXTRA_ID)) {
             supportActionBar?.title  = getText(R.string.edit_note)
             this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
-            editText_new_title.setText(intent.getStringExtra(EXTRA_REPLAY_TITLE))
-            editText_new_description.setText(intent.getStringExtra(EXTRA_REPLAY_DESCRIPTION))
+            editText_new_title.setText(intent.getStringExtra(Constant.EXTRA_REPLAY_TITLE))
+            editText_new_description.setText(intent.getStringExtra(Constant.EXTRA_REPLAY_DESCRIPTION))
+
+            et_new_content.post {
+                et_new_content.clearAllLayout()
+                showData(intent.getStringExtra(Constant.EXTRA_REPLAY_CONTENT)) }
+
         } else {
             supportActionBar?.title  = getText(R.string.add_note)
         }
-
-//        button_image.setOnClickListener {
-//            if (ActivityCompat.checkSelfPermission(
-//                    this@NewNoteActivity,
-//                    Manifest.permission.READ_EXTERNAL_STORAGE
-//                ) != PackageManager.PERMISSION_GRANTED
-//            ) {
-//                ActivityCompat.requestPermissions(
-//                    this@NewNoteActivity,
-//                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-//                    REQUEST_EXTERNAL_STORAGE
-//                )
-//            } else {
-//                pickImage()
-//            }
-//        }
-
-        if (ContextCompat.checkSelfPermission(this@NewNoteActivity,
-                Manifest.permission.CAMERA) !== PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this@NewNoteActivity,
-                arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
-        }
-        dbHelper = DataHelper(this)
     }
 
-    override fun onCreateLoader(
-        i: Int, bundle: Bundle?): Loader<Cursor?>? {
-        val projection = arrayOf(DataHelper.COLUMN_NAME)
-        return CursorLoader(
-            this,
-            ImagesProvider.CONTENT_URI,
-            projection,
-            null,
-            null,
-            null
-        )
-    }
-
-    override fun onLoadFinished(
-        loader: Loader<Cursor?>?, cursor: Cursor?) {
-        imagesAdapter!!.swapCursor(cursor)
-    }
-
-    override fun onLoaderReset(loader: Loader<Cursor?>?) {
-        imagesAdapter!!.swapCursor(null)
+    private fun iniView() {
+        insertDialog = ProgressDialog(this)
+        insertDialog!!.setMessage(getText(R.string.loading))
+        insertDialog!!.setCanceledOnTouchOutside(false)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -133,23 +89,23 @@ class NewNoteActivity : BaseActivity(), LoaderManager.LoaderCallbacks<Cursor>{
             }
             R.id.save_note-> {
                 saveNote()
-                val byte = ByteArrayOutputStream()
-                val data_image = byte.toByteArray()
-                dbHelper!!.addToDb(data_image)
-                Toast.makeText(this, R.string.image_saved, Toast.LENGTH_SHORT).show()
             }
+            R.id.button_image ->
+                DeviceUtils.callGallery(this)
         }
         return super.onOptionsItemSelected(item)
     }
 
     private fun saveNote() {
         val replayIntent = Intent()
+        val noteContent = getEditData()
         if(TextUtils.isEmpty(editText_new_title.text) || TextUtils.isEmpty(editText_new_description.text)) {
             setResult(Activity.RESULT_CANCELED, replayIntent)
         }else {
-            replayIntent.putExtra(EXTRA_REPLAY_TITLE, editText_new_title.text.toString())
-            replayIntent.putExtra(EXTRA_REPLAY_DESCRIPTION, editText_new_description.text.toString())
-            replayIntent.putExtra(EXTRA_REPLAY_COLOR, selectedColor.toString())
+            replayIntent.putExtra(Constant.EXTRA_REPLAY_TITLE, editText_new_title.text.toString())
+            replayIntent.putExtra(Constant.EXTRA_REPLAY_DESCRIPTION, editText_new_description.text.toString())
+            replayIntent.putExtra(Constant.EXTRA_REPLAY_COLOR, selectedColor.toString())
+            replayIntent.putExtra(Constant.EXTRA_REPLAY_CONTENT, noteContent)
             setResult(Activity.RESULT_OK, replayIntent)
         }
 
@@ -159,177 +115,202 @@ class NewNoteActivity : BaseActivity(), LoaderManager.LoaderCallbacks<Cursor>{
         }
 
         val data = Intent().apply {
-            putExtra(EXTRA_REPLAY_TITLE, editText_new_title.text.toString())
-            putExtra(EXTRA_REPLAY_DESCRIPTION, editText_new_description.text.toString())
-            putExtra(EXTRA_REPLAY_COLOR, selectedColor.toString())
-            if (intent.getIntExtra(EXTRA_ID, -1) != -1) {
-                putExtra(EXTRA_ID, intent.getIntExtra(EXTRA_ID, -1))
+            putExtra(Constant.EXTRA_REPLAY_TITLE, editText_new_title.text.toString())
+            putExtra(Constant.EXTRA_REPLAY_DESCRIPTION, editText_new_description.text.toString())
+            putExtra(Constant.EXTRA_REPLAY_COLOR, selectedColor.toString())
+            putExtra(Constant.EXTRA_REPLAY_CONTENT, noteContent)
+            if (intent.getIntExtra(Constant.EXTRA_ID, -1) != -1) {
+                putExtra(Constant.EXTRA_ID, intent.getIntExtra(Constant.EXTRA_ID, -1))
             }
         }
         setResult(Activity.RESULT_OK, data)
         finish()
     }
-    fun onClick(view: View) {
-        when (view.id) {
-            R.id.button_image ->
-                MaterialDialog.Builder(this)
-                .title(R.string.uploadImages)
-                .items(R.array.uploadImages)
-                .itemsIds(R.array.itemIds)
-                .itemsCallback { _, _, which, _ ->
-                    when (which) {
-                        0 -> {
-                            val photoPickerIntent = Intent(Intent.ACTION_PICK)
-                            photoPickerIntent.type = "image/*"
-                            startActivityForResult(photoPickerIntent, SELECT_PHOTO)
-                        }
-                        1 -> {
-                            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                            startActivityForResult(intent, CAPTURE_PHOTO)
-                        }
+
+    private fun showData(html: String) {
+        Observable.create<String> { subscriber -> showEditData(subscriber, html) }
+            .onBackpressureBuffer()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<String> {
+                override fun onCompleted() {
+                    loadingDialog?.dismiss()
+                    et_new_content.addEditTextAtIndex(et_new_content.lastIndex, "")
+                }
+
+                override fun onError(e: Throwable) {
+                    loadingDialog?.dismiss()
+                    (this@NewNoteActivity).showToast("Picture is destroyed or unavailable")
+                }
+
+                override fun onNext(text: String) {
+                    if (text.contains("<img") && text.contains("src=")) {
+                        val imagePath = StringUtils.getImgSrc(text)
+                        et_new_content.addEditTextAtIndex(et_new_content.lastIndex, "")
+                        et_new_content.addImageViewAtIndex(et_new_content.lastIndex, imagePath)
+                    } else {
+                        et_new_content.addEditTextAtIndex(et_new_content.lastIndex, text)
                     }
-                }.show()
+                }
+            })
+    }
+
+    private fun showEditData(subscriber: Subscriber<in String?>, html: String?) {
+        try {
+            val textList = StringUtils.cutStringByImgTag(html!!)
+            for (i in textList.indices) {
+                val text = textList[i]
+                subscriber.onNext(text)
+            }
+            subscriber.onCompleted()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            subscriber.onError(e)
         }
     }
 
-    private fun pickImage() {
-        val getIntent = Intent(Intent.ACTION_GET_CONTENT)
-        getIntent.type = "image/*"
-
-        val pickIntent = Intent( Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pickIntent.type = "image/*"
-
-        val chooserIntent = Intent.createChooser(getIntent, "Select Image")
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(pickIntent))
-        startActivityForResult(chooserIntent, REQUEST_EXTERNAL_STORAGE)
-
-
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        intent.type = "image/*"
-        startActivityForResult(intent, REQUEST_EXTERNAL_STORAGE)
+    private fun getEditData(): String? {
+        val editList: List<RichTextEditor.EditData> = et_new_content.buildEditData()
+        val content = StringBuffer()
+        for (itemData in editList) {
+            if (itemData.inputStr != null) {
+                content.append(itemData.inputStr)
+            } else if (itemData.imagePath != null) {
+                content.append("<img src=\"").append(itemData.imagePath).append("\"/>")
+            }
+        }
+        return content.toString()
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        when (requestCode) {
-//            REQUEST_EXTERNAL_STORAGE -> {
-//                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    pickImage()
-//                } else {
+    private fun insertImagesASync(data: Intent) {
+        insertDialog!!.show()
+        Observable.create<String> { subscriber ->
+            try {
+                et_new_content.measure(0, 0)
+                val width: Int = CommonUtil.getScreenWidth(baseContext)
+                val height: Int = CommonUtil.getScreenHeight(baseContext)
+                val photos = Matisse.obtainResult(data) as ArrayList<Uri>
+                for (imageUri in photos) {
+                    var bitmap: Bitmap? = getBitmapFromUri(imageUri)
+                    val file = getFile(bitmap!!)
+                    var imagePath = file!!.path
+                    bitmap = ImageUtils.getSmallBitmap(imagePath, width, height)
+                    file.delete()
+                    imagePath = SDCardUtil.saveToSdCard(bitmap!!)
+                    subscriber.onNext(imagePath)
+                }
+                subscriber.onCompleted()
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+                subscriber.onError(e)
+            }
+        }
+            .onBackpressureBuffer()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<String?> {
+                override fun onCompleted() {
+                    insertDialog!!.dismiss()
+                    et_new_content.addEditTextAtIndex(et_new_content.lastIndex, " ")
+                    Toast.makeText(this@NewNoteActivity, R.string.image_successfully_inserted, Toast.LENGTH_SHORT).show()
+                }
 
-//                }
-//                return
-//            }
-//        }
+                override fun onError(e: Throwable) {
+                    insertDialog!!.dismiss()
+                    Toast.makeText(
+                        this@NewNoteActivity,
+                        "Fail to Insert Image:" + e.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                override fun onNext(imagePath: String?) {
+                    et_new_content.insertImage(imagePath, et_new_content.measuredWidth)
+                }
+            })
     }
 
-    private fun setProgressBar() {
-        progressBar = ProgressDialog(this)
-        progressBar!!.setCancelable(true)
-        progressBar!!.setMessage(getText(R.string.please_wait))
-        progressBar!!.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        progressBar!!.progress = 0
-        progressBar!!.max = 100
-        progressBar!!.show()
-        progressBarStatus = 0
-        Thread(Runnable {
-            while (progressBarStatus < 100) {
-                progressBarStatus += 30
+    private fun getBitmapFromUri(uri: Uri): Bitmap? {
+        val inputStream: InputStream?
+        var bitmap: Bitmap? = null
+        try {
+            inputStream = this.contentResolver.openInputStream(uri)
+            bitmap = BitmapFactory.decodeStream(inputStream)
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+            Toast.makeText(this@NewNoteActivity, R.string.get_image_failed, Toast.LENGTH_SHORT).show()
+        }
+        return bitmap
+    }
+
+    private fun getFile(bitmap: Bitmap): File? {
+        var pictureDir: String? = null
+        var fos: FileOutputStream? = null
+        var bos: BufferedOutputStream? = null
+        var baos: ByteArrayOutputStream? = null
+        var file: File? = null
+        try {
+            baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+            val byteArray = baos.toByteArray()
+            val saveDir = Environment.getExternalStorageDirectory()
+                .toString() + "/notes"
+            val dir = File(saveDir)
+            if (!dir.exists()) {
+                dir.mkdir()
+            }
+            file = File(
+                saveDir,
+                Calendar.getInstance().time.toString() + ".jpg"
+            )
+            file.delete()
+            if (!file.exists()) {
+                file.createNewFile()
+            }
+            fos = FileOutputStream(file)
+            bos = BufferedOutputStream(fos)
+            bos.write(byteArray)
+            pictureDir = file.path
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        } finally {
+            if (baos != null) {
                 try {
-                    Thread.sleep(1000)
-                } catch (e: InterruptedException) {
+                    baos.close()
+                } catch (e: java.lang.Exception) {
                     e.printStackTrace()
                 }
-                progressBarbHandler.post { progressBar!!.progress = progressBarStatus }
             }
-            if (progressBarStatus >= 100) {
+            if (bos != null) {
                 try {
-                    Thread.sleep(2000)
-                } catch (e: InterruptedException) {
+                    bos.close()
+                } catch (e: java.lang.Exception) {
                     e.printStackTrace()
                 }
-                progressBar!!.dismiss()
             }
-        }).start()
-    }
-
-    private fun onCaptureImageResult(data: Intent) {
-        thumbnail = data.extras!!["data"] as Bitmap?
-        setProgressBar()
+            if (fos != null) {
+                try {
+                    fos.close()
+                } catch (e: java.lang.Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+        return file
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SELECT_PHOTO && resultCode == RESULT_OK) {
-                try {
-                    //val imageUri = data?.data
-                    //val imageStream = contentResolver.openInputStream(imageUri!!)
-                    //val selectedImage = BitmapFactory.decodeStream(imageStream)
-                    setProgressBar()
-                    image_recycler_view.layoutManager = LinearLayoutManager(this)
-                    imagesAdapter = ImagesAdapter(this)
-                    image_recycler_view.adapter = imagesAdapter
-                } catch (e: FileNotFoundException) {
-                    e.printStackTrace()
-                }
-        } else if (requestCode == CAPTURE_PHOTO && resultCode == RESULT_OK) {
-                if (data != null) {
-                    onCaptureImageResult(data)
-                }
-        }
-
-//        if (requestCode == REQUEST_EXTERNAL_STORAGE && resultCode == RESULT_OK) {
-//            val bitmaps: MutableList<Bitmap> = ArrayList()
-//            val clipData = data!!.clipData
-//
-//            if (clipData != null) { //multiple images selected
-//                for (i in 0 until clipData.itemCount) {
-//                    val imageUri = clipData.getItemAt(i).uri
-//                    Log.d("URI", imageUri.toString())
-//                    try {
-//                        val inputStream =
-//                            contentResolver.openInputStream(imageUri)
-//                        val bitmap = BitmapFactory.decodeStream(inputStream)
-//                        bitmaps.add(bitmap)
-//                    } catch (e: FileNotFoundException) {
-//                        e.printStackTrace()
-//                    }
-//                }
-//            } else { //single image selected
-//                val imageUri = data.data
-//                Log.d("URI", imageUri.toString())
-//                try {
-//                    val inputStream =
-//                        contentResolver.openInputStream(imageUri!!)
-//                    val bitmap = BitmapFactory.decodeStream(inputStream)
-//                    bitmaps.add(bitmap)
-//                } catch (e: FileNotFoundException) {
-//                    e.printStackTrace()
-//                }
-//            }
-//            Thread(Runnable {
-//                for (b in bitmaps) {
-//                    runOnUiThread { first_note_img.setImageBitmap(b) }
-//                    try {
-//                        Thread.sleep(3000)
-//                    } catch (e: InterruptedException) {
-//                        e.printStackTrace()
-//                    }
-//                }
-//            }).start()
-//        }
+          if (resultCode == RESULT_OK && data != null && requestCode == Constant.REQUEST_CODE_CHOOSE) {
+              insertImagesASync(data)
+           }
     }
 
-    companion object {
-        const val EXTRA_ID = "EXTRA_ID"
-        const val EXTRA_REPLAY_TITLE = "REPLAY_TITLE"
-        const val EXTRA_REPLAY_DESCRIPTION = "REPLAY_DESCRIPTION"
-        const val EXTRA_REPLAY_COLOR = "REPLAY_COLOR"
-        const val REQUEST_EXTERNAL_STORAGE = 100
-        const val SELECT_PHOTO = 1
-        const val CAPTURE_PHOTO = 2
-        const val IMAGES_LOADER = 0
+    override fun onDeleteImage(imagePath: String?) {
+        val isOK = SDCardUtil.deleteFile(imagePath)
+        if (isOK) {
+            Toast.makeText(this@NewNoteActivity, "Successfully deleted：$imagePath", Toast.LENGTH_SHORT).show()
+        }
     }
 }
 

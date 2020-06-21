@@ -34,5 +34,7 @@
     <string name="image_saved">Image saved to database successfully</string>
     <string name="empty_note">Can not insert empty note!</string>
     <string name="please_wait">Please wait...</string>
-
+    <string name="loading">Loading...</string>
+    <string name="get_image_failed">Get Image Failed</string>
+    <string name="image_successfully_inserted">Image Successfully Inserted</string>
 </resources>

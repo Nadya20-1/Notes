@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/frameContainer"
-    android:layout_width="fill_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_height="fill_parent">
-
-<androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/colorBackground"
-    tools:context=".NewNoteActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:ignore="UselessParent">
+        <LinearLayout
+            android:id="@+id/content_new"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:orientation="vertical"
+            tools:context=".NewNoteActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout2"
@@ -31,83 +37,48 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.appcompat.widget.AppCompatEditText
-        android:id="@+id/editText_new_title"
-        android:maxLength="50"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:hint="@string/titleNewNote"
-        app:backgroundTint="@color/colorBack"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="@+id/appBarLayout2"
-        app:layout_constraintStart_toStartOf="@+id/appBarLayout2"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout2" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-    <androidx.appcompat.widget.AppCompatEditText
-        android:id="@+id/editText_new_description"
-        android:hint="@string/descriptionNewNote"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:inputType="textMultiLine"
-        android:enabled="true"
-        android:scrollbars="vertical"
-        app:backgroundTint="@color/colorBack"
-        app:layout_constraintEnd_toEndOf="@+id/editText_new_title"
-        app:layout_constraintStart_toStartOf="@+id/editText_new_title"
-        app:layout_constraintTop_toBottomOf="@+id/editText_new_title" />
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/editText_new_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:hint="@string/titleNewNote"
+                    android:inputType="textPersonName"
+                    android:maxLength="100"
+                    app:backgroundTint="@color/colorBack" />
 
-<!--    <ImageView-->
-<!--        android:id="@+id/first_note_img"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_alignParentStart="true"-->
-<!--        android:layout_alignParentTop="true"-->
-<!--        android:contentDescription="TODO"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintHorizontal_bias="0.498"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/editText_new_description"-->
-<!--        app:layout_constraintVertical_bias="0.181" />-->
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/editText_new_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="94dp"
+                    android:hint="@string/descriptionNewNote"
+                    android:inputType="textMultiLine"
+                    android:scrollbars="vertical"
+                    app:backgroundTint="@color/colorBack"
+                    app:layout_constraintEnd_toEndOf="@+id/editText_new_title"
+                    app:layout_constraintStart_toStartOf="@+id/editText_new_title"
+                    app:layout_constraintTop_toBottomOf="@+id/editText_new_title" />
 
-<!--    <com.example.notes.CustomViewPager-->
-<!--        android:id="@+id/viewpager"-->
-<!--        android:layout_width="405dp"-->
-<!--        android:layout_height="550dp"-->
-<!--        android:layout_marginTop="14dp"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/editText_new_description" />-->
+            </RelativeLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/image_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editText_new_description"
-            tools:listitem="@layout/image_item" />
+                <com.example.notes.images.RichTextEditor
+                    android:id="@+id/et_new_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="start"
+                    android:scrollbarAlwaysDrawVerticalTrack="true"
+                    android:scrollbarTrackVertical="@color/colorAccent"
+                    android:textColor="@color/colorBack"
+                    android:textSize="16sp" />
 
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/button_image"
-        android:layout_width="59dp"
-        android:layout_height="53dp"
-        android:layout_marginTop="492dp"
-        android:gravity="center"
-        android:onClick="onClick"
-        android:src="@drawable/ic_menu_gallery"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.045"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText_new_description" />
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-</ScrollView>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

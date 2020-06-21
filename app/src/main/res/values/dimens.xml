@@ -1,3 +1,33 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="grid_expected_size">100dp</dimen>
+
+    <dimen name="spacing_xxxxlarge">60dp</dimen>
+    <dimen name="spacing_xxxlarge">48dp</dimen>
+    <dimen name="spacing_xxlarge">40dp</dimen>
+    <dimen name="spacing_xlarge">32dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_slarge">20dp</dimen>
+    <dimen name="spacing_normal">16dp</dimen>
+    <dimen name="spacing_xxnormal">14dp</dimen>
+    <dimen name="spacing_small">12dp</dimen>
+    <dimen name="spacing_xnormal">10dp</dimen>
+    <dimen name="spacing_xsmall">8dp</dimen>
+    <dimen name="spacing_xxsmall">4dp</dimen>
+
+    <!-- text size!-->
+    <dimen name="text_size_smallest">10sp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_xsmall">14sp</dimen>
+    <dimen name="text_size_normal">16sp</dimen>
+    <dimen name="text_size_medium">18sp</dimen>
+    <dimen name="text_size_large">24sp</dimen>
+    <dimen name="text_size_slarge">28sp</dimen>
+    <dimen name="text_size_xlarge">32sp</dimen>
+    <dimen name="text_size_xxlarge">48sp</dimen>
+
+    <dimen name="button">60dp</dimen>
+
+    <dimen name="headerTextSize">22sp</dimen>
+    <dimen name="loginViewsMargin">10dp</dimen>
 </resources>
