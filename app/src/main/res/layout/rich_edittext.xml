@@ -3,8 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@null"
+    android:focusableInTouchMode="true"
     android:cursorVisible="true"
     android:lineSpacingExtra="@dimen/spacing_xsmall"
     android:textSize="@dimen/text_size_normal"
-    android:textColor="#616161"
+    android:textColor="#FF000000"
     android:id="@+id/deletable_edit_text"/>
