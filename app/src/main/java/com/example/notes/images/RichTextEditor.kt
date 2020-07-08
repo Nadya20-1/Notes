@@ -96,6 +96,16 @@ internal class RichTextEditor @JvmOverloads constructor(
         editText.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop)
         editText.hint = hint
         editText.onFocusChangeListener = focusListener
+//        editText.post {
+//            val inputMethodManager =
+//                ContextCompat.getSystemService<Any>(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+//            inputMethodManager!!.toggleSoftInputFromWindow(
+//                editText.applicationWindowToken,
+//                InputMethodManager.SHOW_IMPLICIT,
+//                0
+//            )
+//            editText.requestFocus()
+//        }
         return editText
     }
 

@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:background="@null"
     android:cursorVisible="true"
-    android:lineSpacingExtra="8dp"
-    android:textSize="16sp"
+    android:lineSpacingExtra="@dimen/spacing_xsmall"
+    android:textSize="@dimen/text_size_normal"
     android:textColor="#616161"
     android:id="@+id/deletable_edit_text"/>

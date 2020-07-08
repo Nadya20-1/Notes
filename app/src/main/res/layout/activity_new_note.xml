@@ -45,9 +45,9 @@
                     android:id="@+id/editText_new_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="36dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="@dimen/spacing_xsmall"
+                    android:layout_marginTop="@dimen/spacing_36"
+                    android:layout_marginEnd="@dimen/spacing_xsmall"
                     android:hint="@string/titleNewNote"
                     android:inputType="textPersonName"
                     android:maxLength="100"
@@ -57,8 +57,8 @@
                     android:id="@+id/editText_new_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="94dp"
+                    android:layout_marginStart="@dimen/spacing_xsmall"
+                    android:layout_marginTop="@dimen/spacing_94"
                     android:hint="@string/descriptionNewNote"
                     android:inputType="textMultiLine"
                     android:scrollbars="vertical"
@@ -77,7 +77,7 @@
                     android:scrollbarAlwaysDrawVerticalTrack="true"
                     android:scrollbarTrackVertical="@color/colorAccent"
                     android:textColor="@color/colorBack"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_size_normal" />
 
         </LinearLayout>
     </ScrollView>

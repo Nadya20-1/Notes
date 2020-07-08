@@ -46,7 +46,7 @@ class MainActivity : BaseActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.title = getText(R.string.notes)
 
-        image = getDrawable(R.drawable.ic_delete_another)
+        image = getDrawable(R.drawable.ic_delete_another) as Drawable
 
         background = ColorDrawable(resources.getColor(R.color.delete))
 
@@ -203,35 +203,37 @@ class MainActivity : BaseActivity() {
 
     private fun deleteConfirmation(note: Notes) {
         val alertDialog = AlertDialog.Builder(this)
-        alertDialog.setTitle(R.string.confirm_delete)
-        alertDialog.setMessage(R.string.delete_this)
-        alertDialog.setIcon(R.drawable.ic_delete)
-        alertDialog.setPositiveButton(R.string.yes) { _ , _ ->
+        alertDialog.apply {
+        setTitle(R.string.confirm_delete)
+        setMessage(R.string.delete_this)
+        setIcon(R.drawable.ic_delete)
+        setPositiveButton(R.string.yes) { _ , _ ->
             viewModel.deleteNote(note)
             Toast.makeText(baseContext, R.string.note_deleted, Toast.LENGTH_SHORT).show()
         }
-
-        alertDialog.setNegativeButton(R.string.no) { dialog, _ ->
+        setNegativeButton(R.string.no) { dialog, _ ->
             viewModel.update(note)
             dialog.cancel()
         }
-        alertDialog.show()
+        show()
+        }
     }
 
     private fun deleteAllConfirmation() {
         val alertDialog = AlertDialog.Builder(this)
-        alertDialog.setTitle(R.string.confirm_delete)
-        alertDialog.setMessage(R.string.delete_all)
-        alertDialog.setIcon(R.drawable.ic_delete)
-        alertDialog.setPositiveButton(R.string.yes) { _ , _ ->
+        alertDialog.apply {
+        setTitle(R.string.confirm_delete)
+        setMessage(R.string.delete_all)
+        setIcon(R.drawable.ic_delete)
+        setPositiveButton(R.string.yes) { _ , _ ->
             viewModel.deleteAllNotes()
-            Toast.makeText(this, R.string.all_entries_deleted, Toast.LENGTH_SHORT).show()
+            Toast.makeText(baseContext, R.string.all_entries_deleted, Toast.LENGTH_SHORT).show()
         }
-
-        alertDialog.setNegativeButton(R.string.no) { dialog, _ ->
+        setNegativeButton(R.string.no) { dialog, _ ->
             dialog.cancel()
         }
-        alertDialog.show()
+        show()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -241,9 +243,9 @@ class MainActivity : BaseActivity() {
         val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
         val item = menu.findItem(R.id.searchItem)
         itemSearch = item.actionView as SearchView
-        itemSearch.setSearchableInfo(searchManager.getSearchableInfo(componentName))
-
-        itemSearch.setOnQueryTextListener(
+        itemSearch.apply {
+            setSearchableInfo(searchManager.getSearchableInfo(componentName))
+            setOnQueryTextListener(
             object : SearchView.OnQueryTextListener{
                 override fun onQueryTextSubmit(query: String?): Boolean {
                     adapter.filter.filter(query)
@@ -255,6 +257,7 @@ class MainActivity : BaseActivity() {
                 }
             }
         )
+        }
         return true
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -2,6 +2,15 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="grid_expected_size">100dp</dimen>
 
+    <dimen name="spacing_zero">0dp</dimen>
+    <dimen name="spacing_36">36dp</dimen>
+    <dimen name="spacing_94">94dp</dimen>
+    <dimen name="spacing_250">250dp</dimen>
+    <dimen name="spacing_106">106dp</dimen>
+    <dimen name="spacing_188">188dp</dimen>
+    <dimen name="spacing_65">65dp</dimen>
+    <dimen name="spacing_110">110dp</dimen>
+    <dimen name="spacing_84">84dp</dimen>
     <dimen name="spacing_xxxxlarge">60dp</dimen>
     <dimen name="spacing_xxxlarge">48dp</dimen>
     <dimen name="spacing_xxlarge">40dp</dimen>
@@ -14,6 +23,7 @@
     <dimen name="spacing_xnormal">10dp</dimen>
     <dimen name="spacing_xsmall">8dp</dimen>
     <dimen name="spacing_xxsmall">4dp</dimen>
+    <dimen name="spacing_2">2dp</dimen>
 
     <!-- text size!-->
     <dimen name="text_size_smallest">10sp</dimen>
