@@ -1,4 +1,4 @@
-@file:Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+@file:Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS", "DEPRECATION")
 
 package com.example.notes
 
@@ -36,7 +36,6 @@ import java.util.*
 class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
 
     private var selectedColor: Int = ColorSheet.NO_COLOR
-    private val loadingDialog: ProgressDialog? = null
     private var insertDialog: ProgressDialog? = null
 
     override fun getViewID(): Int = R.layout.activity_new_note
@@ -128,6 +127,7 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
     }
 
     private fun showData(html: String) {
+        val loadingDialog: ProgressDialog? = null
         Observable.create<String> { subscriber -> showEditData(subscriber, html) }
             .onBackpressureBuffer()
             .subscribeOn(Schedulers.io())
