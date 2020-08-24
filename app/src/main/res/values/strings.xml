@@ -37,4 +37,8 @@
     <string name="loading">Loading...</string>
     <string name="get_image_failed">Get Image Failed</string>
     <string name="image_successfully_inserted">Image Successfully Inserted</string>
+
+    <string name="you_have_already_granted_this_permission">You have already granted this permission!</string>
+    <string name="permission_granted">Permission Granted</string>
+    <string name="permission_denied">Permission Denied</string>
 </resources>

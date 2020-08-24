@@ -96,7 +96,7 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
             R.id.button_image ->
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
                 {
-                    Toast.makeText(this, "You have already granted this permission!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.you_have_already_granted_this_permission, Toast.LENGTH_SHORT).show()
                     DeviceUtils.callGallery(this)
                 } else {
                     requestStoragePermission()
@@ -116,10 +116,10 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
     {
         if (requestCode == Constant.STORAGE_PERMISSION_CODE)  {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permission GRANTED", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.permission_granted, Toast.LENGTH_SHORT).show()
                 DeviceUtils.callGallery(this)
             } else {
-                Toast.makeText(this, "Permission DENIED", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_SHORT).show()
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
