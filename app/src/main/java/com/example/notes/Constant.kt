@@ -7,4 +7,5 @@ object Constant {
     const val EXTRA_REPLAY_CONTENT = "REPLAY_CONTENT"
     const val EXTRA_REPLAY_COLOR = "REPLAY_COLOR"
     const val REQUEST_CODE_CHOOSE = 101
+    const val STORAGE_PERMISSION_CODE = 1
 }

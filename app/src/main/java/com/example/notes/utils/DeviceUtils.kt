@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.view.inputmethod.InputMethodManager
+import com.example.notes.Constant
 import com.example.notes.R
 import com.zhihu.matisse.Matisse
 import com.zhihu.matisse.MimeType
@@ -24,7 +25,6 @@ object DeviceUtils {
     }
 
     fun callGallery(context: Context) {
-        val REQUEST_CODE_CHOOSE = 101
         Matisse.from(context as Activity)
             .choose(MimeType.allOf())
             .countable(true)
@@ -36,6 +36,6 @@ object DeviceUtils {
             .thumbnailScale(0.85f)
             .imageEngine(GlideEngine())
             .theme(R.style.Matisse_Zhihu)
-            .forResult(REQUEST_CODE_CHOOSE)
+            .forResult(Constant.REQUEST_CODE_CHOOSE)
     }
 }

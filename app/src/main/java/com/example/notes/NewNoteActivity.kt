@@ -2,9 +2,11 @@
 
 package com.example.notes
 
+import android.Manifest
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -16,6 +18,8 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.notes.images.RichTextEditor
 import com.example.notes.ui.base.BaseActivity
 import com.example.notes.utils.*
@@ -90,9 +94,35 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
                 saveNote()
             }
             R.id.button_image ->
-                DeviceUtils.callGallery(this)
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                {
+                    Toast.makeText(this, "You have already granted this permission!", Toast.LENGTH_SHORT).show()
+                    DeviceUtils.callGallery(this)
+                } else {
+                    requestStoragePermission()
+                }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun requestStoragePermission() {
+            ActivityCompat.requestPermissions(
+                this@NewNoteActivity,
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                Constant.STORAGE_PERMISSION_CODE)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray)
+    {
+        if (requestCode == Constant.STORAGE_PERMISSION_CODE)  {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission GRANTED", Toast.LENGTH_SHORT).show()
+                DeviceUtils.callGallery(this)
+            } else {
+                Toast.makeText(this, "Permission DENIED", Toast.LENGTH_SHORT).show()
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     private fun saveNote() {
