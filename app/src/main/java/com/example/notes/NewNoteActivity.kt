@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuInflater
@@ -20,6 +21,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.afollestad.materialdialogs.MaterialDialog
 import com.example.notes.images.RichTextEditor
 import com.example.notes.ui.base.BaseActivity
 import com.example.notes.utils.*
@@ -94,22 +96,51 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
                 saveNote()
             }
             R.id.button_image ->
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
-                {
-                    Toast.makeText(this, R.string.you_have_already_granted_this_permission, Toast.LENGTH_SHORT).show()
-                    DeviceUtils.callGallery(this)
-                } else {
-                    requestStoragePermission()
-                }
+
+                MaterialDialog.Builder(this)
+                    .title(R.string.uploadImages)
+                    .items(R.array.uploadImages)
+                    .itemsIds(R.array.itemIds)
+                    .itemsCallback { _, _, which, _ ->
+                        when (which) {
+                            0 -> {
+                                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                                {
+                                    Toast.makeText(this, R.string.you_have_already_granted_this_permission, Toast.LENGTH_SHORT).show()
+                                    DeviceUtils.callGallery(this)
+                                } else {
+                                    requestStoragePermission()
+                                }
+                            }
+                            1 -> {
+                                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+                                {
+                                    Toast.makeText(this, R.string.you_have_already_granted_this_permission, Toast.LENGTH_SHORT).show()
+                                    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                                    if (intent.resolveActivity(packageManager) != null) {startActivityForResult(intent, Constant.CAPTURE_PHOTO)}
+                                } else {
+                                    requestCameraPermission()
+                                }
+                            }
+                        }
+                    }
+                    .show()
         }
         return super.onOptionsItemSelected(item)
     }
 
     private fun requestStoragePermission() {
             ActivityCompat.requestPermissions(
-                this@NewNoteActivity,
+                this,
                 arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
                 Constant.STORAGE_PERMISSION_CODE)
+    }
+
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.CAMERA),
+            Constant.CAMERA_PERMISSION_CODE)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray)
@@ -121,7 +152,17 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
             } else {
                 Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_SHORT).show()
             }
+        } else
+        if (requestCode == Constant.CAMERA_PERMISSION_CODE)  {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, R.string.permission_granted, Toast.LENGTH_SHORT).show()
+                val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                if (intent.resolveActivity(packageManager) != null) {startActivityForResult(intent, Constant.CAPTURE_PHOTO)}
+            } else {
+                Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_SHORT).show()
+            }
         }
+
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
@@ -219,15 +260,18 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
                 et_new_content.measure(0, 0)
                 val width: Int = CommonUtil.getScreenWidth(baseContext)
                 val height: Int = CommonUtil.getScreenHeight(baseContext)
-                val photos = Matisse.obtainResult(data) as ArrayList<Uri>
-                for (imageUri in photos) {
-                    var bitmap: Bitmap? = getBitmapFromUri(imageUri)
-                    val file = getFile(bitmap!!)
-                    var imagePath = file!!.path
-                    bitmap = ImageUtils.getSmallBitmap(imagePath, width, height)
-                    file.delete()
-                    imagePath = SDCardUtil.saveToSdCard(bitmap!!)
-                    subscriber.onNext(imagePath)
+                val photos = Matisse.obtainResult(data) as ArrayList<Uri>?
+                if (photos != null) {
+                    for (imageUri in photos) {
+                        var bitmap: Bitmap? = getBitmapFromUri(imageUri)
+                        val file = getFile(bitmap!!)
+                        var imagePath = file!!.path
+                        //FileProvider.getUriForFile(Objects.requireNonNull(applicationContext), BuildConfig.APPLICATION_ID + ".provider", file)
+                        bitmap = ImageUtils.getSmallBitmap(imagePath, width, height)
+                        file.delete()
+                        imagePath = SDCardUtil.saveToSdCard(bitmap!!)
+                        subscriber.onNext(imagePath)
+                    }
                 }
                 subscriber.onCompleted()
             } catch (e: java.lang.Exception) {
@@ -333,7 +377,11 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
         super.onActivityResult(requestCode, resultCode, data)
           if (resultCode == RESULT_OK && data != null && requestCode == Constant.REQUEST_CODE_CHOOSE) {
               insertImagesASync(data)
-           }
+           } else if (resultCode == RESULT_OK && data != null && requestCode == Constant.CAPTURE_PHOTO)
+          {
+              insertImagesASync(data)
+              //onCaptureImageResult(data)
+          }
     }
 
     override fun onDeleteImage(imagePath: String?) {

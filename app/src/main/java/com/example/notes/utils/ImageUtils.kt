@@ -46,7 +46,7 @@ object ImageUtils {
         }
         var bitmap: Bitmap? = null
         val b = os.toByteArray()
-        if (b.size != 0) {
+        if (b.isNotEmpty()) {
             bitmap = BitmapFactory.decodeByteArray(b, 0, b.size)
         }
         return bitmap

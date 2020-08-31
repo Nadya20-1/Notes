@@ -28,7 +28,6 @@ object DeviceUtils {
         Matisse.from(context as Activity)
             .choose(MimeType.allOf())
             .countable(true)
-            .capture(true)
             .captureStrategy(CaptureStrategy(true, "notes"))
             .maxSelectable(5)
             .gridExpectedSize(context.getResources().getDimensionPixelSize(R.dimen.grid_expected_size))
