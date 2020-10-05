@@ -377,11 +377,12 @@ class NewNoteActivity : BaseActivity(), RichTextEditor.OnDeleteImageListener{
         super.onActivityResult(requestCode, resultCode, data)
           if (resultCode == RESULT_OK && data != null && requestCode == Constant.REQUEST_CODE_CHOOSE) {
               insertImagesASync(data)
-           } else if (resultCode == RESULT_OK && data != null && requestCode == Constant.CAPTURE_PHOTO)
-          {
-              insertImagesASync(data)
-              //onCaptureImageResult(data)
-          }
+           }
+//          else if (resultCode == RESULT_OK && data != null && requestCode == Constant.CAPTURE_PHOTO)
+//          {
+//              insertImagesASync(data)
+//              //onCaptureImageResult(data)
+//          }
     }
 
     override fun onDeleteImage(imagePath: String?) {

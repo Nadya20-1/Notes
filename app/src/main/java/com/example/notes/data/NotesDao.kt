@@ -21,4 +21,7 @@ interface NotesDao {
 
     @Query("DELETE FROM notes_table")
      fun deleteAll()
+
+    @Query("SELECT * FROM notes_table")
+    fun getNoteAsLiveDataForTest(): LiveData<Notes>
 }
